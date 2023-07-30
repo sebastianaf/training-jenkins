@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  org-jenkins-docker:
+    container_name: org-jenkins-docker
+    image: docker:dind
+    restart: always
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ${DOCKER_TLS_CERTDIR}
+    ports:
+      - 2376:2376
+    volumes:
+      - ./jenkins-data:/var/jenkins_home
+      - ./jenkins-docker-certs:/certs/client
+    command: --storage-driver=overlay2
+    networks:
+      - org-jenkins
+
+
+  org-jenkins-master:
+    container_name: org-jenkins-master
+    image: org-jenkins
+    restart: on-failure
+    privileged: true
+    environment:
+      DOCKER_HOST: tcp://org-jenkins-docker:2376
+      DOCKER_CERT_PATH: ${DOCKER_CERT_PATH}
+      DOCKER_TLS_VERIFY: ${DOCKER_TLS_VERIFY}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+      - 50000:50000
+    networks:
+      - org-jenkins
+    volumes:
+      - ./jenkins-data:/var/jenkins_home
+      - ./jenkins-docker-certs:/certs/client:ro
+    user: root:root
+
+networks:
+  org-jenkins:
+    name: org-jenkins
+
