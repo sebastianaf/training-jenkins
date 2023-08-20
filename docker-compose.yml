@@ -2,9 +2,10 @@ version: "3.8"
 
 services:
   org-jenkins-docker:
-    container_name: org-jenkins-docker
+    container_name: docker
     image: docker:dind
     restart: always
+    user: root:root
     privileged: true
     environment:
       DOCKER_TLS_CERTDIR: ${DOCKER_TLS_CERTDIR}
@@ -23,6 +24,7 @@ services:
     image: org-jenkins
     restart: on-failure
     privileged: true
+    user: root:root
     environment:
       DOCKER_HOST: tcp://org-jenkins-docker:2376
       DOCKER_CERT_PATH: ${DOCKER_CERT_PATH}
@@ -38,7 +40,7 @@ services:
     volumes:
       - ./jenkins-data:/var/jenkins_home
       - ./jenkins-docker-certs:/certs/client:ro
-    user: root:root
+      - ./ssh:/root/.ssh
 
 networks:
   org-jenkins:
